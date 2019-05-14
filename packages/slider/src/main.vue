@@ -8,6 +8,7 @@
     :aria-orientation="vertical ? 'vertical': 'horizontal'"
     :aria-disabled="sliderDisabled"
   >
+  <!-- role? a11y-->
     <el-input-number
       v-model="firstValue"
       v-if="showInput && !range"
@@ -91,26 +92,32 @@
     },
 
     props: {
+      // 最小值
       min: {
         type: Number,
         default: 0
       },
+      // 最大值
       max: {
         type: Number,
         default: 100
       },
+      // 步长，默认1
       step: {
         type: Number,
         default: 1
       },
+      // ？
       value: {
         type: [Number, Array],
         default: 0
       },
+      // 是否显示input number
       showInput: {
         type: Boolean,
         default: false
       },
+      // ?
       showInputControls: {
         type: Boolean,
         default: true
@@ -143,6 +150,7 @@
       height: {
         type: String
       },
+      // 防抖
       debounce: {
         type: Number,
         default: 300

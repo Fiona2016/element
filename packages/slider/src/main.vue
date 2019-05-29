@@ -8,7 +8,8 @@
     :aria-orientation="vertical ? 'vertical': 'horizontal'"
     :aria-disabled="sliderDisabled"
   >
-  <!-- role? a11y-->
+  <!--  is-vertical 是否是垂直方向展示 -->
+  <!--  是否显示Input也会影响样式布局。 Aria 学习见learn.note.md -->
     <el-input-number
       v-model="firstValue"
       v-if="showInput && !range"
@@ -107,7 +108,7 @@
         type: Number,
         default: 1
       },
-      // ？
+      // 绑定的值，默认是number, range => Array
       value: {
         type: [Number, Array],
         default: 0
@@ -117,15 +118,17 @@
         type: Boolean,
         default: false
       },
-      // ?
+      // input number的控制按钮
       showInputControls: {
         type: Boolean,
         default: true
       },
+      // for input number
       inputSize: {
         type: String,
         default: 'small'
       },
+      // 显示间隔点
       showStops: {
         type: Boolean,
         default: false
@@ -147,10 +150,11 @@
         type: Boolean,
         default: false
       },
+      // 垂直方向的slider需要height
       height: {
         type: String
       },
-      // 防抖
+      // Input number 使用
       debounce: {
         type: Number,
         default: 300
@@ -170,11 +174,11 @@
 
     data() {
       return {
-        firstValue: null,
-        secondValue: null,
-        oldValue: null,
-        dragging: false,
-        sliderSize: 1
+        firstValue: null, // if range
+        secondValue: null, // if range
+        oldValue: null, // prev value
+        dragging: false, // 是否在拖拽
+        sliderSize: 1 // slider的client W or client H depend on orientation
       };
     },
 
@@ -190,7 +194,7 @@
       },
 
       dragging(val) {
-        if (!val) {
+        if (!val) { // 停止drag时设置value
           this.setValues();
         }
       },
@@ -220,6 +224,7 @@
 
     methods: {
       valueChanged() {
+          // oldValue在这里，防止重复触发，用于和每次新生成的值进行比较，看是否需要emit事件
         if (this.range) {
           return ![this.minValue, this.maxValue]
             .every((item, index) => item === this.oldValue[index]);
@@ -246,8 +251,8 @@
             this.firstValue = val[0];
             this.secondValue = val[1];
             if (this.valueChanged()) {
-              this.dispatch('ElFormItem', 'el.form.change', [this.minValue, this.maxValue]);
-              this.oldValue = val.slice();
+              this.dispatch('ElFormItem', 'el.form.change', [this.minValue, this.maxValue]); // [?]为什么返回的是min和max
+              this.oldValue = val.slice(); // [L] 通过slice来生成新的数组
             }
           }
         } else if (!this.range && typeof val === 'number' && !isNaN(val)) {
@@ -266,6 +271,7 @@
       },
 
       setPosition(percent) {
+        // [key] 根据百分比确定button位置。
         const targetValue = this.min + percent * (this.max - this.min) / 100;
         if (!this.range) {
           this.$refs.button1.setPosition(percent);
@@ -273,6 +279,7 @@
         }
         let button;
         if (Math.abs(this.minValue - targetValue) < Math.abs(this.maxValue - targetValue)) {
+            // [?] 因为first value 和second value，刚开始是first更小，但如果一直往右拖拽超过secondValue，此时firstValue会变得更大？
           button = this.firstValue < this.secondValue ? 'button1' : 'button2';
         } else {
           button = this.firstValue > this.secondValue ? 'button1' : 'button2';
@@ -287,6 +294,7 @@
           const sliderOffsetBottom = this.$refs.slider.getBoundingClientRect().bottom;
           this.setPosition((sliderOffsetBottom - event.clientY) / this.sliderSize * 100);
         } else {
+            // [key] slider改变时计算value，需要从map里面找映射关系
           const sliderOffsetLeft = this.$refs.slider.getBoundingClientRect().left;
           this.setPosition((event.clientX - sliderOffsetLeft) / this.sliderSize * 100);
         }
@@ -295,17 +303,20 @@
 
       resetSize() {
         if (this.$refs.slider) {
+          // 记录sliderSize是为了记录slider的总宽度【水平slider】 or 高度【垂直slider】
           this.sliderSize = this.$refs.slider[`client${ this.vertical ? 'Height' : 'Width' }`];
         }
       },
 
       emitChange() {
+        // TODO 为什么这里需要nextTick去做？
         this.$nextTick(() => {
           this.$emit('change', this.range ? [this.minValue, this.maxValue] : this.value);
         });
       },
 
       getStopStyle(position) {
+          // [key] 这里是根据百分比设置的，也需要改掉
         return this.vertical ? { 'bottom': position + '%' } : { 'left': position + '%' };
       }
     },
@@ -341,12 +352,12 @@
 
         const marksKeys = Object.keys(this.marks);
         return marksKeys.map(parseFloat)
-          .sort((a, b) => a - b)
-          .filter(point => point <= this.max && point >= this.min)
+          .sort((a, b) => a - b) // marks的key排序
+          .filter(point => point <= this.max && point >= this.min) // 去掉无用数据
           .map(point => ({
             point,
-            position: (point - this.min) * 100 / (this.max - this.min),
-            mark: this.marks[point]
+            position: (point - this.min) * 100 / (this.max - this.min), // 这里用index排序
+            mark: this.marks[point] // ? 这是干嘛的？
           }));
       },
 
@@ -361,7 +372,7 @@
       barSize() {
         return this.range
           ? `${ 100 * (this.maxValue - this.minValue) / (this.max - this.min) }%`
-          : `${ 100 * (this.firstValue - this.min) / (this.max - this.min) }%`;
+          : `${ 100 * (this.firstValue - this.min) / (this.max - this.min) }%`; // bar占了多宽
       },
 
       barStart() {
@@ -400,21 +411,29 @@
 
     mounted() {
       let valuetext;
-      if (this.range) {
-        if (Array.isArray(this.value)) {
+      if (this.range) { // range prop, 用于指明是否选择某个范围
+        if (Array.isArray(this.value)) { // 如果是选择范围，value需要传array
+        // range的值，赋值给firstValue & seconed Value, 确保在min和max之间
           this.firstValue = Math.max(this.min, this.value[0]);
           this.secondValue = Math.min(this.max, this.value[1]);
         } else {
           this.firstValue = this.min;
           this.secondValue = this.max;
         }
-        this.oldValue = [this.firstValue, this.secondValue];
-        valuetext = `${this.firstValue}-${this.secondValue}`;
+        this.oldValue = [this.firstValue, this.secondValue]; // ? oldValue干嘛用呢？ 为了和下次改变的数值进行对比？
+        valuetext = `${this.firstValue}-${this.secondValue}`; // aria-valuetext使用
       } else {
         if (typeof this.value !== 'number' || isNaN(this.value)) {
+          // 异常情况赋默认值，firstValue = min
           this.firstValue = this.min;
         } else {
-          this.firstValue = Math.min(this.max, Math.max(this.min, this.value));
+          // if (value > max) { value = max }
+          // if (value < min) { value = min }
+          // =>
+          // value = min(max(min, value), max)
+          // value 的可能值： value < min / min <= value <= max / value > max
+          // 首先确保value在min右侧 max(this.value, this.min) 再确保在max左侧 min(max, last)
+          this.firstValue = Math.min(this.max, Math.max(this.min, this.value)); // 确保在范围里面 [H]
         }
         this.oldValue = this.firstValue;
         valuetext = this.firstValue;

@@ -382,10 +382,13 @@
       },
 
       precision() {
+          // [L] 从min, max和step中获取最大精度作为默认精度
         let precisions = [this.min, this.max, this.step].map(item => {
           let decimal = ('' + item).split('.')[1];
           return decimal ? decimal.length : 0;
         });
+        // [L] Precisions是数组，apply第一个参数this,第二个参数argsArray
+        // bind 第一个参数this, 之后是各个参数
         return Math.max.apply(null, precisions);
       },
 

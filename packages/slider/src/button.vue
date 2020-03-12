@@ -139,7 +139,7 @@
         window.addEventListener('touchmove', this.onDragging);
         window.addEventListener('mouseup', this.onDragEnd);
         window.addEventListener('touchend', this.onDragEnd);
-        window.addEventListener('contextmenu', this.onDragEnd);
+        window.addEventListener('contextmenu', this.onDragEnd); // 已过时，右键点击时上下文交互的菜单
       },
       onLeftKeyDown() {
         if (this.disabled) return;
@@ -194,7 +194,7 @@
       onDragEnd() {
         if (this.dragging) {
           /*
-           * 防止在 mouseup 后立即触发 click，导致滑块有几率产生一小段位移
+           * 防止在 mouseup 后立即触发 click，导致滑块有几率产生一小段位移 // 想象马上停止，用户鼠标还是会有位移
            * 不使用 preventDefault 是因为 mouseup 和 click 没有注册在同一个 DOM 上
            */
           setTimeout(() => {
@@ -205,9 +205,9 @@
               this.$parent.emitChange();
             }
           }, 0);
-          window.removeEventListener('mousemove', this.onDragging);
-          window.removeEventListener('touchmove', this.onDragging);
-          window.removeEventListener('mouseup', this.onDragEnd);
+          window.removeEventListener('mousemove', this.onDragging); // mousemove 在元素中移动。一般与mouseover对比，后者不冒泡
+          window.removeEventListener('touchmove', this.onDragging); 
+          window.removeEventListener('mouseup', this.onDragEnd); // 鼠标抬起。 dbclick => mousedown, mouseup, click, mousedown, mouseup,click,dbclick
           window.removeEventListener('touchend', this.onDragEnd);
           window.removeEventListener('contextmenu', this.onDragEnd);
         }
@@ -219,10 +219,10 @@
           newPosition = 0;
         } else if (newPosition > 100) {
           newPosition = 100;
-        }
-        const lengthPerStep = 100 / ((this.max - this.min) / this.step);
-        const steps = Math.round(newPosition / lengthPerStep);
-        let value = steps * lengthPerStep * (this.max - this.min) * 0.01 + this.min;
+        } //以上边界处理
+        const lengthPerStep = 100 / ((this.max - this.min) / this.step); // 步长长度 this.step / (this.max - this.min) * 100 ?
+        const steps = Math.round(newPosition / lengthPerStep); // interger
+        let value = steps * lengthPerStep * (this.max - this.min) * 0.01 + this.min;// 精度有丢失
         value = parseFloat(value.toFixed(this.precision));
         this.$emit('input', value);
         this.$nextTick(() => {

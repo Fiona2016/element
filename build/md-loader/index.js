@@ -54,7 +54,6 @@ module.exports = function(source) {
     start = content.indexOf('</script>') + '</script>'.length;
     pageScript = content.slice(0, start);
   }
-
   output.push(content.slice(start));
   return `
     <template>

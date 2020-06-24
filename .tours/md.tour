@@ -1,0 +1,15 @@
+{
+  "title": "md",
+  "steps": [
+    {
+      "title": "Introduction",
+      "description": "学习文档里如何注册组件，并进行展示"
+    },
+    {
+      "file": "build/webpack.demo.js",
+      "line": 87,
+      "description": "对于md文件，用自研的 ```md-loader``` 处理 "
+    }
+  ],
+  "ref": "learn"
+}

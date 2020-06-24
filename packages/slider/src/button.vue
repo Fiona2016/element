@@ -205,8 +205,7 @@
               this.$parent.emitChange();
             }
           }, 0);
-          window.removeEventListener('mousemove', this.onDragging); // mousemove 在元素中移动。一般与mouseover对比，后者不冒泡
-          window.removeEventListener('touchmove', this.onDragging); 
+          window.removeEventListener('mousemove', this.onDragging); // mousemove 在元素中移动。一般与mouseover对比，后者不冒泡          window.removeEventListener('touchmove', this.onDragging);
           window.removeEventListener('mouseup', this.onDragEnd); // 鼠标抬起。 dbclick => mousedown, mouseup, click, mousedown, mouseup,click,dbclick
           window.removeEventListener('touchend', this.onDragEnd);
           window.removeEventListener('contextmenu', this.onDragEnd);
@@ -219,7 +218,7 @@
           newPosition = 0;
         } else if (newPosition > 100) {
           newPosition = 100;
-        } //以上边界处理
+        } // 以上边界处理
         const lengthPerStep = 100 / ((this.max - this.min) / this.step); // 步长长度 this.step / (this.max - this.min) * 100 ?
         const steps = Math.round(newPosition / lengthPerStep); // interger
         let value = steps * lengthPerStep * (this.max - this.min) * 0.01 + this.min;// 精度有丢失

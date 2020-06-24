@@ -1,5 +1,5 @@
-const Config = require('markdown-it-chain');
-const anchorPlugin = require('markdown-it-anchor');
+const Config = require('markdown-it-chain'); // 支持 markdown Loader 链式调用？ 
+const anchorPlugin = require('markdown-it-anchor'); // 锚点
 const slugify = require('transliteration').slugify;
 const containers = require('./containers');
 const overWriteFenceRule = require('./fence');
@@ -7,7 +7,7 @@ const overWriteFenceRule = require('./fence');
 const config = new Config();
 
 config
-  .options.html(true).end()
+  .options.html(true).end() // 先生成html
 
   .plugin('anchor').use(anchorPlugin, [
     {
@@ -16,9 +16,9 @@ config
       permalink: true,
       permalinkBefore: true
     }
-  ]).end()
+  ]).end() // 添加锚点
 
-  .plugin('containers').use(containers).end();
+  .plugin('containers').use(containers).end();  // 使用自研的插件 containers
 
 const md = config.toMd();
 overWriteFenceRule(md);
